@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 
 // api
-import {getApiUrl} from '../../api/APIEndpoints'
+import { newsApi } from '../../api/APIEndpoints'
 
 // components
 import NewsItem from './NewsItem'
@@ -21,47 +21,45 @@ export default class News extends Component {
             isLoading: false,
             totalPages: 0,
         }
-        console.log(this.props)
     }
-
-    async componentDidMount(){
-        this.setState({isLoading: true})
-        const response = await fetch(getApiUrl(this.props.country, this.props.pageSize, this.props.category))
-        console.log('genreted url', getApiUrl(this.props.country, this.props.pageSize, this.props.category)+`&page=${this.state.page + 1}`)
-        const {articles, totalResults} = await response.json()
-
+    getNews = async (newPage) => {
         this.setState({
-            articles,
-            totalPages: Math.ceil(totalResults/this.props.pageSize),
-            isLoading: false
+            isLoading: true
+        })
+        const responce = await fetch(newsApi(newPage,this.props.pageSize, this.props.country, this.props.category))
+        const data = await responce.json()
+        // console.log(data)
+        this.setState({
+            isLoading: false,
+            articles: data.articles,
+            totalPages: Math.ceil(data.totalResults/this.props.pageSize)
         })
     }
+
+    componentDidMount(){
+        this.getNews(this.state.page)    
+        document.title = `World Bulletins | ${this.capitalizeFirstLetter(this.props.category)}`
+    }
+
     handleNextClick = async () => {
-        this.setState({isLoading: true})
-        const response = await fetch(getApiUrl(this.props.country, this.props.pageSize, this.props.category)+`&page=${this.state.page + 1}`)
-        const {articles} = await response.json()
-        this.setState({
-            articles,
-            page: this.state.page + 1,
-            isLoading: false
-        })
-        console.log('next')
+        const newPage = this.state.page + 1
+        this.setState({page: newPage})
+        this.getNews(newPage)
     }
     handlePreviousClick = async () => {
-        this.setState({isLoading: true})
-        const response = await fetch(getApiUrl(this.props.country, this.props.pageSize, this.props.category)+`&page=${this.state.page - 1}`)
-        const {articles} = await response.json()
-        this.setState({
-            articles,
-            page: this.state.page - 1,
-            isLoading: false
-        })
-        console.log('previous')
+        const oldPage = this.state.page - 1
+        this.setState({page: this.state.page - 1})
+        this.getNews(oldPage)
     }
+
+    capitalizeFirstLetter = (string) => {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
     render() {
         return (
             <div className='container my-3' style={{paddingTop: 50}}>
-                <h1 className='my-3 text-center'>World Bullatins | Top Headlines</h1>
+                <h1 className='my-3 text-center'>World Bullatins | {this.capitalizeFirstLetter(this.props.category)}</h1>
                 {this.state.isLoading &&<Spinner />}
                 <div className='row my-3'>
                     {
@@ -69,7 +67,7 @@ export default class News extends Component {
                         && 
                         this.state.articles.map((article) => (
                                 <div key={article.url} className='col-md-4'>
-                                    <NewsItem title={article.title} newsUrl={article.url} imageUrl={article.urlToImage}  description={article.description}/>                    
+                                    <NewsItem title={article.title} newsUrl={article.url} imageUrl={article.urlToImage}  description={article.description} author={article.author} publishedAt={article.publishedAt} source={article.source.name} />                    
                                 </div>
                             )
                         )
@@ -102,12 +100,12 @@ export default class News extends Component {
 
 News.defaultProps = {
     country: 'in',
-    pageSize: 6,
+    pageSize: 9,
     category: 'general'
 }
 
 News.propTypes = {
     country: PropTypes.string,
     pageSize: PropTypes.number,
-    category: PropTypes.string,
+    category: PropTypes.string
 }
