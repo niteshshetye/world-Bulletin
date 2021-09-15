@@ -1,4 +1,4 @@
-
+import {API_KEY} from '../../keys'
 // export const method_get = {
 //     "method": 'GET',
 // 	"headers": {
@@ -13,6 +13,6 @@
 // }
 
 export const newsApi = (pageNumber, pageSize, country,category) => {
-    const TOP_HEADLINES = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=92f7dba4625b49d2b21a3c59ee7ccd51&page=${pageNumber}&pageSize=${pageSize}`
+    const TOP_HEADLINES = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${API_KEY}&page=${pageNumber}&pageSize=${pageSize}`
     return TOP_HEADLINES
 }
